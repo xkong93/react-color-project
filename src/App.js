@@ -20,7 +20,7 @@ class App extends Component {
                            <Palette palette={generatePalette(
                                this.findPalette(routerProps.match.params.id))}
                            />
-                       )}//key point
+                       )}//key pointss
                 />
 
             </Switch>
