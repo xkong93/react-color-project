@@ -5,6 +5,7 @@ import seedColor from './seedColors'
 import {generatePalette} from './colorHelpers'
 import PaletteList from './PaletteList'
 import SingleColorPalette from './SingleColorPalette'
+
 class App extends Component {
 
     findPalette(id) {
@@ -15,15 +16,23 @@ class App extends Component {
         return (
 
             <Switch>
-                <Route exact path="/" render={(routerProps) => <PaletteList palettes={seedColor} routerProps={routerProps}/>}/>
+                <Route exact path="/" render={(routerProps) =>
+                    <PaletteList palettes={seedColor} routerProps={routerProps}/>}/>
                 <Route exact path="/palette/:id"
                        render={routerProps => (
-                           <Palette palette={generatePalette(
-                               this.findPalette(routerProps.match.params.id))}
+                           <Palette
+                               palette={generatePalette(
+                                   this.findPalette(routerProps.match.params.id))}
                            />
                        )}//key pointss
                 />
-                <Route path="/palette/:paletteId/:colorId" render={() => <SingleColorPalette/>}/>
+                {/*<Route path="/palette/:paletteId/:colorId" render={() => <SingleColorPalette/>}/>*/}
+                <Route path="/palette/:paletteId/:colorId" render={(routerProps) =>
+                    <SingleColorPalette
+                        colorId={routerProps.match.params.colorId}
+                        palette={generatePalette(
+                            this.findPalette(routerProps.match.params.paletteId))}/>}
+                />
 
             </Switch>
         );
