@@ -37,6 +37,7 @@ class ColorBox extends Component {
                     {showLink &&
                         <Link to={`/palette/${paletteId}/${id}`}
                               onClick={(e) => e.stopPropagation()}>
+                            {/*//don't fire the button from parent*/}
                         <span className="see-more">More</span>
                         </Link>}
                     </div>
