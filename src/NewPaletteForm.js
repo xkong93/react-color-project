@@ -14,6 +14,8 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {ChromePicker} from "react-color"
 import Button from '@material-ui/core/Button';
+import DraggableColorBox from "./RaggableColorBox";
+import {ValidatorForm, TextValidator} from "react-material-ui-form-validator"
 
 const drawerWidth = 400;
 
@@ -58,6 +60,7 @@ const styles = theme => ({
     },
     content: {
         flexGrow: 1,
+        height: "calc(100vh - 64px)",
         padding: theme.spacing.unit * 3,
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
@@ -79,13 +82,28 @@ class PersistentDrawerLeft extends React.Component {
         super(props)
         this.state = {
             open: true,
+            newName: "",
             currentColor: "teal",
             colors: [
-                "purple", "#e15764"
+                {color: "blue", name: "blue"}
             ]
         }
     }
 
+    componentDidMount() {
+        // custom rule will have name 'isPasswordMatch'
+        ValidatorForm.addValidationRule('isColorNameUnique', (value) =>
+            this.state.colors.every(
+                ({name}) => name.toLowerCase() !== value.toLowerCase()
+            )
+        );
+
+        ValidatorForm.addValidationRule('isColorUnique', (value) =>
+            this.state.colors.every(
+                ({color}) => color !== this.state.currentColor
+            )
+        );
+    }
 
     handleDrawerOpen = () => {
         this.setState({open: true});
@@ -102,7 +120,17 @@ class PersistentDrawerLeft extends React.Component {
     }
 
     addNewColor = () => {
-        this.setState({colors: [...this.state.colors, this.state.currentColor]})
+        const newColor = {
+            color: this.state.currentColor,
+            name: this.state.newName
+
+        }
+
+        this.setState({colors: [...this.state.colors, newColor],newName:""})
+    }
+
+    handleChange = (event) => {
+        this.setState({newName: event.target.value})
     }
 
     render() {
@@ -153,14 +181,23 @@ class PersistentDrawerLeft extends React.Component {
                         <Button variant="contained" color="primary">Random Color</Button>
                     </div>
                     <ChromePicker color={this.state.currentColor} onChangeComplete={this.updateCurrentColor}/>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        style={{backgroundColor: this.state.currentColor}}
-                        onClick={this.addNewColor}
-                    >
-                        Add Color onClick
-                    </Button>
+                    <ValidatorForm onSubmit={this.addNewColor}>
+                        <TextValidator value={this.state.newName}
+                                       onChange={this.handleChange}
+                                       validators={['required','isColorUnique', 'isColorNameUnique']}
+                                       errorMessages={['Enter a color name','Color already used!', 'Color name must be unique']}
+                        />
+
+                        <Button
+                            variant="contained"
+                            type="submit"
+                            color="primary"
+                            style={{backgroundColor: this.state.currentColor}}
+                        >
+                            Add Color onClick
+                        </Button>
+                    </ValidatorForm>
+
 
                 </Drawer>
                 <main
@@ -169,13 +206,9 @@ class PersistentDrawerLeft extends React.Component {
                     })}
                 >
                     <div className={classes.drawerHeader}/>
-                    <ul>
-                        {colors.map(color =>
-                            <li style={{backgroundColor:color}}>
-                                {color}
-                            </li>
-                        )}
-                    </ul>
+                    {colors.map(color =>
+                        <DraggableColorBox color={color.color} name={color.name}/>
+                    )}
                 </main>
             </div>
         );
