@@ -126,11 +126,23 @@ class PersistentDrawerLeft extends React.Component {
 
         }
 
-        this.setState({colors: [...this.state.colors, newColor],newName:""})
+        this.setState({colors: [...this.state.colors, newColor], newName: ""})
     }
 
     handleChange = (event) => {
         this.setState({newName: event.target.value})
+    }
+
+    handleSubmit = () => {
+        let newName = "New Test Palette";
+        const newPalette =
+            {
+                paletteName: newName,
+                id:newName.toLowerCase().replace(/ /g, "-"),
+                colors: this.state.colors
+            }
+        this.props.savePalette(newPalette);
+        this.props.history.push("/")
     }
 
     render() {
@@ -141,6 +153,7 @@ class PersistentDrawerLeft extends React.Component {
             <div className={classes.root}>
                 <CssBaseline/>
                 <AppBar
+                    color="default"
                     position="fixed"
                     className={classNames(classes.appBar, {
                         [classes.appBarShift]: open,
@@ -158,6 +171,7 @@ class PersistentDrawerLeft extends React.Component {
                         <Typography variant="h6" color="inherit" noWrap>
                             Persistent drawer
                         </Typography>
+                        <Button variant='contained' color='primary' onClick={this.handleSubmit}>Save Palette</Button>
                     </Toolbar>
                 </AppBar>
                 <Drawer
@@ -184,8 +198,8 @@ class PersistentDrawerLeft extends React.Component {
                     <ValidatorForm onSubmit={this.addNewColor}>
                         <TextValidator value={this.state.newName}
                                        onChange={this.handleChange}
-                                       validators={['required','isColorUnique', 'isColorNameUnique']}
-                                       errorMessages={['Enter a color name','Color already used!', 'Color name must be unique']}
+                                       validators={['required', 'isColorUnique', 'isColorNameUnique']}
+                                       errorMessages={['Enter a color name', 'Color already used!', 'Color name must be unique']}
                         />
 
                         <Button
