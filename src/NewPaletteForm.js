@@ -1,7 +1,9 @@
 import React from 'react';
+import {Link} from "react-router-dom"
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
+import PaletteFormNav from './PaletteFormNav'
 import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
@@ -14,8 +16,10 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import {ChromePicker} from "react-color"
 import Button from '@material-ui/core/Button';
-import DraggableColorBox from "./RaggableColorBox";
 import {ValidatorForm, TextValidator} from "react-material-ui-form-validator"
+import DraggableColorList from "./DraggableColorList"
+import {arrayMove} from 'react-sortable-hoc'
+import ColorPickerForm from './ColorPickerForm'
 
 const drawerWidth = 400;
 
@@ -78,32 +82,20 @@ const styles = theme => ({
 });
 
 class PersistentDrawerLeft extends React.Component {
+    static defaultProps = {
+        maxColors: 20
+    }
     constructor(props) {
         super(props)
         this.state = {
             open: true,
-            newName: "",
-            currentColor: "teal",
-            colors: [
-                {color: "blue", name: "blue"}
-            ]
+            colors: this.props.palettes[0].colors,
+            newPaletteName: "",
+
         }
     }
 
-    componentDidMount() {
-        // custom rule will have name 'isPasswordMatch'
-        ValidatorForm.addValidationRule('isColorNameUnique', (value) =>
-            this.state.colors.every(
-                ({name}) => name.toLowerCase() !== value.toLowerCase()
-            )
-        );
 
-        ValidatorForm.addValidationRule('isColorUnique', (value) =>
-            this.state.colors.every(
-                ({color}) => color !== this.state.currentColor
-            )
-        );
-    }
 
     handleDrawerOpen = () => {
         this.setState({open: true});
@@ -113,67 +105,67 @@ class PersistentDrawerLeft extends React.Component {
         this.setState({open: false});
     };
 
-    updateCurrentColor = (newColor) => {
+    addNewColor = (newColor) => {
+
+        this.setState({colors: [...this.state.colors, newColor], newColorName: ""})
+    }
+
+    addRandomColor = () => {
+        //pick random color from exisiting palettes
+        const allColors = this.props.palettes.map ( p =>
+            p.colors
+        ).flat()
+
+        var rand = Math.floor(Math.random() * allColors.length);
+        const randomColor = allColors[rand];
         this.setState({
-            currentColor: newColor.hex
+            colors: [...this.state.colors,randomColor]
         })
     }
 
-    addNewColor = () => {
-        const newColor = {
-            color: this.state.currentColor,
-            name: this.state.newName
 
-        }
-
-        this.setState({colors: [...this.state.colors, newColor], newName: ""})
+    clearColors = () => {
+        this.setState({
+            colors:[],
+        })
     }
-
-    handleChange = (event) => {
-        this.setState({newName: event.target.value})
-    }
-
-    handleSubmit = () => {
-        let newName = "New Test Palette";
+    handleSubmit = (newPaletteName) => {
         const newPalette =
             {
-                paletteName: newName,
-                id:newName.toLowerCase().replace(/ /g, "-"),
+                paletteName: newPaletteName,
+                id: newPaletteName.toLowerCase().replace(/ /g, "-"),
                 colors: this.state.colors
             }
         this.props.savePalette(newPalette);
         this.props.history.push("/")
     }
 
-    render() {
-        const {classes, theme} = this.props;
-        const {open, colors} = this.state;
+    removeColor = (coloraName) => {
+        this.setState({
+            colors: this.state.colors.filter(color => color.name !== coloraName)
+        })
+    }
+    onSortEnd = ({oldIndex, newIndex}) => {
+        this.setState( ({colors}) =>  {
+            return {colors: arrayMove(colors, oldIndex, newIndex)}
+        })
+    }
 
+
+    render() {
+        const {classes, theme,maxColors,palettes} = this.props;
+        const {open, colors} = this.state;
+        const  paletteIsFull = colors.length >= maxColors
         return (
             <div className={classes.root}>
-                <CssBaseline/>
-                <AppBar
-                    color="default"
-                    position="fixed"
-                    className={classNames(classes.appBar, {
-                        [classes.appBarShift]: open,
-                    })}
-                >
-                    <Toolbar disableGutters={!open}>
-                        <IconButton
-                            color="inherit"
-                            aria-label="Open drawer"
-                            onClick={this.handleDrawerOpen}
-                            className={classNames(classes.menuButton, open && classes.hide)}
-                        >
-                            <MenuIcon/>
-                        </IconButton>
-                        <Typography variant="h6" color="inherit" noWrap>
-                            Persistent drawer
-                        </Typography>
-                        <Button variant='contained' color='primary' onClick={this.handleSubmit}>Save Palette</Button>
-                    </Toolbar>
-                </AppBar>
+                <PaletteFormNav
+                    open={open}
+                    classes={classes}
+                    palettes={palettes}
+                    handleSubmit={this.handleSubmit}
+                    handleDrawerOpen={this.handleDrawerOpen}
+
+                />
                 <Drawer
                     className={classes.drawer}
                     variant="persistent"
@@ -191,28 +183,11 @@ class PersistentDrawerLeft extends React.Component {
                     <Divider/>
                     <Typography variant="h4">Design your palette</Typography>
                     <div>
-                        <Button variant="contained" color="secondary">Clear Palette</Button>
-                        <Button variant="contained" color="primary">Random Color</Button>
+                        <Button variant="contained" color="secondary" onClick={this.clearColors}>Clear Palette</Button>
+                        <Button variant="contained" color="primary" onClick={this.addRandomColor} disabled={paletteIsFull}>Random Color</Button>
                     </div>
-                    <ChromePicker color={this.state.currentColor} onChangeComplete={this.updateCurrentColor}/>
-                    <ValidatorForm onSubmit={this.addNewColor}>
-                        <TextValidator value={this.state.newName}
-                                       onChange={this.handleChange}
-                                       validators={['required', 'isColorUnique', 'isColorNameUnique']}
-                                       errorMessages={['Enter a color name', 'Color already used!', 'Color name must be unique']}
-                        />
 
-                        <Button
-                            variant="contained"
-                            type="submit"
-                            color="primary"
-                            style={{backgroundColor: this.state.currentColor}}
-                        >
-                            Add Color onClick
-                        </Button>
-                    </ValidatorForm>
-
-
+                <ColorPickerForm colors={colors} paletteIsFull={paletteIsFull} addNewColor={this.addNewColor}/>
                 </Drawer>
                 <main
                     className={classNames(classes.content, {
@@ -220,9 +195,12 @@ class PersistentDrawerLeft extends React.Component {
                     })}
                 >
                     <div className={classes.drawerHeader}/>
-                    {colors.map(color =>
-                        <DraggableColorBox color={color.color} name={color.name}/>
-                    )}
+                    <DraggableColorList
+                        colors={this.state.colors}
+                        removeColor={this.removeColor}
+                        axis="xy"
+                        onSortEnd={this.onSortEnd}
+                    />
                 </main>
             </div>
         );
