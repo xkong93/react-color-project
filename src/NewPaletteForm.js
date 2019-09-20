@@ -27,24 +27,6 @@ const styles = theme => ({
     root: {
         display: 'flex',
     },
-    appBar: {
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        }),
-    },
-    appBarShift: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    },
-    menuButton: {
-        marginLeft: 12,
-        marginRight: 20,
-    },
     hide: {
         display: 'none',
     },
@@ -54,6 +36,8 @@ const styles = theme => ({
     },
     drawerPaper: {
         width: drawerWidth,
+        display:"flex",
+        alignItems:"center"
     },
     drawerHeader: {
         display: 'flex',
@@ -79,12 +63,29 @@ const styles = theme => ({
         }),
         marginLeft: 0,
     },
+    container: {
+        width: "90%",
+        height: "100%",
+        display:"flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center"
+
+    },
+    buttons: {
+        width: "100%",
+
+    },
+    button: {
+        width: "50%"
+    }
 });
 
 class PersistentDrawerLeft extends React.Component {
     static defaultProps = {
         maxColors: 20
     }
+
     constructor(props) {
         super(props)
         this.state = {
@@ -94,7 +95,6 @@ class PersistentDrawerLeft extends React.Component {
 
         }
     }
-
 
 
     handleDrawerOpen = () => {
@@ -112,21 +112,21 @@ class PersistentDrawerLeft extends React.Component {
 
     addRandomColor = () => {
         //pick random color from exisiting palettes
-        const allColors = this.props.palettes.map ( p =>
+        const allColors = this.props.palettes.map(p =>
             p.colors
         ).flat()
 
         var rand = Math.floor(Math.random() * allColors.length);
         const randomColor = allColors[rand];
         this.setState({
-            colors: [...this.state.colors,randomColor]
+            colors: [...this.state.colors, randomColor]
         })
     }
 
 
     clearColors = () => {
         this.setState({
-            colors:[],
+            colors: [],
         })
     }
     handleSubmit = (newPaletteName) => {
@@ -146,16 +146,16 @@ class PersistentDrawerLeft extends React.Component {
         })
     }
     onSortEnd = ({oldIndex, newIndex}) => {
-        this.setState( ({colors}) =>  {
+        this.setState(({colors}) => {
             return {colors: arrayMove(colors, oldIndex, newIndex)}
         })
     }
 
 
     render() {
-        const {classes, theme,maxColors,palettes} = this.props;
+        const {classes, theme, maxColors, palettes} = this.props;
         const {open, colors} = this.state;
-        const  paletteIsFull = colors.length >= maxColors
+        const paletteIsFull = colors.length >= maxColors
         return (
             <div className={classes.root}>
                 <PaletteFormNav
@@ -181,13 +181,17 @@ class PersistentDrawerLeft extends React.Component {
                         </IconButton>
                     </div>
                     <Divider/>
-                    <Typography variant="h4">Design your palette</Typography>
-                    <div>
-                        <Button variant="contained" color="secondary" onClick={this.clearColors}>Clear Palette</Button>
-                        <Button variant="contained" color="primary" onClick={this.addRandomColor} disabled={paletteIsFull}>Random Color</Button>
-                    </div>
+                    <div className={classes.container}>
+                        <Typography variant="h4" gutterBottom>Design your palette</Typography>
+                        <div className={classes.buttons}>
+                            <Button className={classes.button} variant="contained" color="secondary" onClick={this.clearColors}>Clear
+                                Palette</Button>
+                            <Button className={classes.button} variant="contained" color="primary" onClick={this.addRandomColor}
+                                    disabled={paletteIsFull}>Random Color</Button>
+                        </div>
 
-                <ColorPickerForm colors={colors} paletteIsFull={paletteIsFull} addNewColor={this.addNewColor}/>
+                        <ColorPickerForm colors={colors} paletteIsFull={paletteIsFull} addNewColor={this.addNewColor}/>
+                    </div>
                 </Drawer>
                 <main
                     className={classNames(classes.content, {
