@@ -1,24 +1,18 @@
 import React, {Component} from 'react'
 import {Link} from "react-router-dom"
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
+import PaletteMetaForm from "./PaletteMetaForm"
 
-import Drawer from '@material-ui/core/Drawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import {ChromePicker} from "react-color"
+
 import Button from '@material-ui/core/Button';
-import {ValidatorForm, TextValidator} from "react-material-ui-form-validator"
-import DraggableColorList from "./DraggableColorList"
-import {arrayMove} from 'react-sortable-hoc'
+
 
 const drawerWidth = 400;
 
@@ -48,31 +42,46 @@ const styles = theme => ({
         marginLeft: 12,
         marginRight: 20,
     },
-    navBtns: {}
+    navBtns: {
+        marginRight: "1rem",
+
+
+    },
+    button1: {
+        marginTop: "12px",
+        marginRight: "10px"
+
+
+    },
+
+    button2: {
+        marginTop: "12px"
+
+    },
+    link: {
+      textDecoration: "none"
+    }
+
 })
 
 class PaletteFormNav extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            newColorName: ""
+            newColorName: "",
+            formShowing: false
         }
     }
 
-    componentDidMount() {
-        ValidatorForm.addValidationRule('isPaletteNameUnique', (value) =>
-            this.props.palettes.every(
-                ({paletteName}) => paletteName.toLowerCase() !== value.toLowerCase()
-            )
-        );
+    showForm = () => {
+        this.setState({
+            formShowing: true
+        })
     }
 
-    handleChange = (event) => {
-        this.setState({[event.target.name]: event.target.value})
-    }
 
     render() {
-        const {classes, open} = this.props
+        const {classes, open,palettes,handleSubmit} = this.props
         const {newPaletteName} = this.state
         return (
             <div className={classes.root}>
@@ -100,26 +109,18 @@ class PaletteFormNav extends Component {
 
                     </Toolbar>
                     <div className={classes.navBtns}>
-                        <ValidatorForm onSubmit={() => this.props.handleSubmit(newPaletteName)}>
-                            <TextValidator label="Palette Name"
-                                           value={this.state.newPaletteName}
-                                           name="newPaletteName"
-                                           onChange={this.handleChange}
-                                           validators={["required", "isPaletteNameUnique"]}
-                                           errorMessages={["Enter Palette Name", "Name already used"]}
 
-                            />
-                            <Button variant='contained' color='primary' type="submit">
-                                Save Palette</Button>
-
-
-                        </ValidatorForm>
-                        <Link to={'/'}>
-                            <Button variant='contained' color='secondary' type="submit">
-                                Go Back</Button>
+                        <Link className={classes.link} to={'/'}>
+                            <Button className={classes.button1} variant='contained' color='secondary' >
+                                Back</Button>
                         </Link>
+                        <Button className={classes.button2} variant="contained" color="primary" onClick={this.showForm}>
+                            Save
+                        </Button>
                     </div>
                 </AppBar>
+                {this.state.formShowing && (<PaletteMetaForm palettes={palettes} handleSubmit={handleSubmit}/>)}
+
             </div>
         )
     }
